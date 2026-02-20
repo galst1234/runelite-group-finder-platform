@@ -22,6 +22,6 @@ async def close_db() -> None:
     await engine.dispose()
 
 
-async def get_session() -> AsyncGenerator[AsyncSession, None]:
+async def get_session() -> AsyncGenerator[AsyncSession]:
     async with _session_factory() as session:
         yield session

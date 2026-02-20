@@ -1,12 +1,12 @@
 import uuid
-from enum import Enum
-from typing import Optional
+from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
-from sqlmodel import SQLModel, Field as SQLField
+from sqlmodel import Field as SQLField
+from sqlmodel import SQLModel
 
 
-class Activity(str, Enum):
+class Activity(StrEnum):
     CHAMBERS_OF_XERIC = "CHAMBERS_OF_XERIC"
     THEATRE_OF_BLOOD = "THEATRE_OF_BLOOD"
     TOMBS_OF_AMASCUT = "TOMBS_OF_AMASCUT"
@@ -42,9 +42,9 @@ class CreateGroupRequest(BaseModel):
 class UpdateGroupRequest(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
-    current_size: Optional[int] = Field(None, alias="currentSize", ge=1, le=100)
-    max_size: Optional[int] = Field(None, alias="maxSize", ge=2, le=100)
-    description: Optional[str] = Field(None, max_length=200)
+    current_size: int | None = Field(None, alias="currentSize", ge=1, le=100)
+    max_size: int | None = Field(None, alias="maxSize", ge=2, le=100)
+    description: str | None = Field(None, max_length=200)
 
 
 class GroupListingResponse(BaseModel):

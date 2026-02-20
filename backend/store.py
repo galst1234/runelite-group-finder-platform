@@ -1,6 +1,5 @@
 import time
 import uuid
-from typing import Optional
 
 from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -33,15 +32,15 @@ async def create_listing(session: AsyncSession, req: CreateGroupRequest) -> Grou
     return listing
 
 
-async def get_listings(session: AsyncSession, activity: Optional[Activity] = None) -> list[GroupListing]:
+async def get_listings(session: AsyncSession, activity: Activity | None = None) -> list[GroupListing]:
     statement = select(GroupListing)
     if activity is not None:
         statement = statement.where(GroupListing.activity == activity.value)
-    result = await session.exec(statement)
+    result = await session.exec(statement)  # ty: ignore[unresolved-attribute]  # SQLModel extension
     return list(result.all())
 
 
-async def get_listing(session: AsyncSession, listing_id: str) -> Optional[GroupListing]:
+async def get_listing(session: AsyncSession, listing_id: str) -> GroupListing | None:
     return await session.get(GroupListing, listing_id)
 
 
@@ -54,7 +53,7 @@ async def delete_listing(session: AsyncSession, listing_id: str) -> bool:
     return True
 
 
-async def update_listing(session: AsyncSession, listing_id: str, req: UpdateGroupRequest) -> Optional[GroupListing]:
+async def update_listing(session: AsyncSession, listing_id: str, req: UpdateGroupRequest) -> GroupListing | None:
     listing = await session.get(GroupListing, listing_id)
     if listing is None:
         return None
@@ -85,5 +84,7 @@ async def heartbeat(session: AsyncSession, listing_id: str) -> bool:
 
 async def cleanup_expired(session: AsyncSession) -> None:
     cutoff = _now_ms() - TTL_MS
-    await session.exec(delete(GroupListing).where(GroupListing.last_heartbeat < cutoff))
+    await session.exec(  # ty: ignore[unresolved-attribute]  # SQLModel extension
+        delete(GroupListing).where(GroupListing.last_heartbeat < cutoff)  # ty: ignore[invalid-argument-type]  # SQLAlchemy expression
+    )
     await session.commit()

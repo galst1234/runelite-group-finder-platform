@@ -29,7 +29,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="RuneLite Group Finder", lifespan=lifespan)
 
 app.add_middleware(
-    CORSMiddleware,
+    CORSMiddleware,  # ty: ignore[invalid-argument-type]  # ParamSpec limitation
     allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],

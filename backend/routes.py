@@ -1,5 +1,3 @@
-from typing import Optional
-
 from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -16,7 +14,7 @@ router = APIRouter(prefix="/api/groups")
 
 
 @router.get("", response_model=list[GroupListingResponse])
-async def list_groups(activity: Optional[Activity] = None, session: AsyncSession = Depends(get_session)):
+async def list_groups(activity: Activity | None = None, session: AsyncSession = Depends(get_session)):
     return await store.get_listings(session, activity)
 
 
