@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-import store
-from database import get_session
-from models import (
+from app import store
+from app.database import get_session
+from app.models.api import (
     Activity,
     CreateGroupRequest,
     GroupListingResponse,

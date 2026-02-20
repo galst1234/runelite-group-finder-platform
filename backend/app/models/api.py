@@ -1,9 +1,6 @@
-import uuid
 from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
-from sqlmodel import Field as SQLField
-from sqlmodel import SQLModel
 
 
 class Activity(StrEnum):
@@ -57,16 +54,3 @@ class GroupListingResponse(BaseModel):
     max_size: int = Field(alias="maxSize")
     description: str
     created_at: int = Field(alias="createdAt")
-
-
-class GroupListing(SQLModel, table=True):
-    __tablename__ = "group_listings"
-
-    id: str = SQLField(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
-    player_name: str = SQLField(max_length=12)
-    activity: str = SQLField(max_length=50)
-    current_size: int
-    max_size: int
-    description: str = SQLField(default="", max_length=200)
-    created_at: int
-    last_heartbeat: int

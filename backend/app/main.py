@@ -5,9 +5,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-import store
-from database import close_db, engine, init_db
-from routes import router
+from app import store
+from app.database import close_db, engine, init_db
+from app.routes import router
 
 
 async def _cleanup_loop():

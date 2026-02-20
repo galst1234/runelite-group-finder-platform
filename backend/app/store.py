@@ -5,7 +5,8 @@ from sqlalchemy import delete
 from sqlmodel import col, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from models import Activity, CreateGroupRequest, GroupListing, UpdateGroupRequest
+from app.models.api import Activity, CreateGroupRequest, UpdateGroupRequest
+from app.models.db import GroupListing
 
 TTL_MS = 30 * 60 * 1000  # 30 minutes
 
