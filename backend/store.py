@@ -2,81 +2,88 @@ import time
 import uuid
 from typing import Optional
 
-from models import Activity, CreateGroupRequest, UpdateGroupRequest
+from sqlalchemy import delete
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import select
+
+from models import Activity, CreateGroupRequest, GroupListing, UpdateGroupRequest
 
 TTL_MS = 30 * 60 * 1000  # 30 minutes
-
-_listings: dict[str, dict] = {}
 
 
 def _now_ms() -> int:
     return int(time.time() * 1000)
 
 
-def create_listing(req: CreateGroupRequest) -> dict:
-    listing_id = str(uuid.uuid4())
+async def create_listing(session: AsyncSession, req: CreateGroupRequest) -> GroupListing:
     now = _now_ms()
-    listing = {
-        "id": listing_id,
-        "playerName": req.player_name,
-        "activity": req.activity.value,
-        "currentSize": req.current_size,
-        "maxSize": req.max_size,
-        "description": req.description,
-        "createdAt": now,
-        "lastHeartbeat": now,
-    }
-    _listings[listing_id] = listing
+    listing = GroupListing(
+        id=str(uuid.uuid4()),
+        player_name=req.player_name,
+        activity=req.activity.value,
+        current_size=req.current_size,
+        max_size=req.max_size,
+        description=req.description,
+        created_at=now,
+        last_heartbeat=now,
+    )
+    session.add(listing)
+    await session.commit()
+    await session.refresh(listing)
     return listing
 
 
-def get_listings(activity: Optional[Activity] = None) -> list[dict]:
-    cleanup_expired()
-    results = list(_listings.values())
+async def get_listings(session: AsyncSession, activity: Optional[Activity] = None) -> list[GroupListing]:
+    statement = select(GroupListing)
     if activity is not None:
-        results = [l for l in results if l["activity"] == activity.value]
-    return results
+        statement = statement.where(GroupListing.activity == activity.value)
+    result = await session.exec(statement)
+    return list(result.all())
 
 
-def get_listing(listing_id: str) -> Optional[dict]:
-    return _listings.get(listing_id)
+async def get_listing(session: AsyncSession, listing_id: str) -> Optional[GroupListing]:
+    return await session.get(GroupListing, listing_id)
 
 
-def delete_listing(listing_id: str) -> bool:
-    return _listings.pop(listing_id, None) is not None
+async def delete_listing(session: AsyncSession, listing_id: str) -> bool:
+    listing = await session.get(GroupListing, listing_id)
+    if listing is None:
+        return False
+    await session.delete(listing)
+    await session.commit()
+    return True
 
 
-def update_listing(listing_id: str, req: UpdateGroupRequest) -> Optional[dict]:
-    listing = _listings.get(listing_id)
+async def update_listing(session: AsyncSession, listing_id: str, req: UpdateGroupRequest) -> Optional[GroupListing]:
+    listing = await session.get(GroupListing, listing_id)
     if listing is None:
         return None
 
     if req.current_size is not None:
-        listing["currentSize"] = req.current_size
+        listing.current_size = req.current_size
     if req.max_size is not None:
-        listing["maxSize"] = req.max_size
+        listing.max_size = req.max_size
     if req.description is not None:
-        listing["description"] = req.description
+        listing.description = req.description
 
-    if listing["currentSize"] > listing["maxSize"]:
+    if listing.current_size > listing.max_size:
         raise ValueError("currentSize must be <= maxSize")
 
+    await session.commit()
+    await session.refresh(listing)
     return listing
 
 
-def heartbeat(listing_id: str) -> bool:
-    listing = _listings.get(listing_id)
+async def heartbeat(session: AsyncSession, listing_id: str) -> bool:
+    listing = await session.get(GroupListing, listing_id)
     if listing is None:
         return False
-    listing["lastHeartbeat"] = _now_ms()
+    listing.last_heartbeat = _now_ms()
+    await session.commit()
     return True
 
 
-def cleanup_expired() -> None:
-    now = _now_ms()
-    expired = [
-        lid for lid, listing in _listings.items()
-        if now - listing["lastHeartbeat"] > TTL_MS
-    ]
-    for lid in expired:
-        del _listings[lid]
+async def cleanup_expired(session: AsyncSession) -> None:
+    cutoff = _now_ms() - TTL_MS
+    await session.exec(delete(GroupListing).where(GroupListing.last_heartbeat < cutoff))
+    await session.commit()

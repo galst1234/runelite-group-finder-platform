@@ -1,7 +1,9 @@
+import uuid
 from enum import Enum
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
+from sqlmodel import SQLModel, Field as SQLField
 
 
 class Activity(str, Enum):
@@ -46,7 +48,7 @@ class UpdateGroupRequest(BaseModel):
 
 
 class GroupListingResponse(BaseModel):
-    model_config = ConfigDict(populate_by_name=True, serialize_by_alias=True)
+    model_config = ConfigDict(populate_by_name=True, serialize_by_alias=True, from_attributes=True)
 
     id: str
     player_name: str = Field(alias="playerName")
@@ -55,3 +57,16 @@ class GroupListingResponse(BaseModel):
     max_size: int = Field(alias="maxSize")
     description: str
     created_at: int = Field(alias="createdAt")
+
+
+class GroupListing(SQLModel, table=True):
+    __tablename__ = "group_listings"
+
+    id: str = SQLField(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
+    player_name: str = SQLField(max_length=12)
+    activity: str = SQLField(max_length=50)
+    current_size: int
+    max_size: int
+    description: str = SQLField(default="", max_length=200)
+    created_at: int
+    last_heartbeat: int
