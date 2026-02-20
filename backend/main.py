@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 import store
 from database import close_db, engine, init_db
@@ -18,7 +18,7 @@ async def _cleanup_loop():
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(_app: FastAPI):
     await init_db()
     task = asyncio.create_task(_cleanup_loop())
     yield

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Response
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 import store
 from database import get_session
