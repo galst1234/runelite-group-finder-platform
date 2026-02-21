@@ -1,4 +1,6 @@
+import datetime
 from enum import StrEnum
+from typing import Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -30,7 +32,7 @@ class CreateGroupRequest(BaseModel):
     description: str = Field(default="", max_length=200)
 
     @model_validator(mode="after")
-    def current_size_le_max_size(self):
+    def current_size_le_max_size(self) -> Self:
         if self.current_size > self.max_size:
             raise ValueError("currentSize must be <= maxSize")
         return self
@@ -53,4 +55,4 @@ class GroupListingResponse(BaseModel):
     current_size: int = Field(alias="currentSize")
     max_size: int = Field(alias="maxSize")
     description: str
-    created_at: int = Field(alias="createdAt")
+    created_at: datetime.datetime = Field(alias="createdAt")

@@ -1,3 +1,4 @@
+import datetime
 import time
 import uuid
 
@@ -8,7 +9,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from app.models.api import Activity, CreateGroupRequest, UpdateGroupRequest
 from app.models.db import GroupListing
 
-TTL_MS = 30 * 60 * 1000  # 30 minutes
+TTL_MINUTES = datetime.timedelta(minutes=30)
 
 
 def _now_ms() -> int:
@@ -16,7 +17,7 @@ def _now_ms() -> int:
 
 
 async def create_listing(session: AsyncSession, req: CreateGroupRequest) -> GroupListing:
-    now = _now_ms()
+    now = datetime.datetime.now(datetime.UTC)
     listing = GroupListing(
         id=str(uuid.uuid4()),
         player_name=req.player_name,
@@ -78,12 +79,12 @@ async def heartbeat(session: AsyncSession, listing_id: str) -> bool:
     listing = await session.get(GroupListing, listing_id)
     if listing is None:
         return False
-    listing.last_heartbeat = _now_ms()
+    listing.last_heartbeat = datetime.datetime.now(datetime.UTC)
     await session.commit()
     return True
 
 
 async def cleanup_expired(session: AsyncSession) -> None:
-    cutoff = _now_ms() - TTL_MS
+    cutoff = datetime.datetime.now(datetime.UTC) - TTL_MINUTES
     await session.exec(delete(GroupListing).where(col(GroupListing.last_heartbeat) < cutoff))
     await session.commit()

@@ -1,5 +1,7 @@
+import datetime
 import uuid
 
+import sqlalchemy as sa
 from sqlmodel import Field, SQLModel
 
 
@@ -12,5 +14,11 @@ class GroupListing(SQLModel, table=True):
     current_size: int
     max_size: int
     description: str = Field(default="", max_length=200)
-    created_at: int
-    last_heartbeat: int
+    created_at: datetime.datetime = Field(
+        default_factory=lambda: datetime.datetime.now(datetime.UTC),
+        sa_column=sa.Column(sa.DateTime(timezone=True), nullable=False),
+    )
+    last_heartbeat: datetime.datetime = Field(
+        default_factory=lambda: datetime.datetime.now(datetime.UTC),
+        sa_column=sa.Column(sa.DateTime(timezone=True), nullable=False),
+    )

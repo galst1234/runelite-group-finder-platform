@@ -10,8 +10,8 @@ from alembic import context
 # Ensure the backend directory is on sys.path so we can import our modules
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-import app.models.db  # noqa: E402, F401 — import so SQLModel registers the GroupListing table
-from app.config import settings  # noqa: E402
+import app.models.db  # noqa: F401 — import so SQLModel registers the GroupListing table
+from app.config import settings
 
 config = context.config
 
