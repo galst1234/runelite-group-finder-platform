@@ -14,6 +14,7 @@ class GroupListing(SQLModel, table=True):
     current_size: int
     max_size: int
     description: str = Field(default="", max_length=200)
+    friends_chat_name: str = Field(default="", max_length=12)
     created_at: datetime.datetime = Field(
         default_factory=lambda: datetime.datetime.now(datetime.UTC),
         sa_column=sa.Column(sa.DateTime(timezone=True), nullable=False),

@@ -25,6 +25,7 @@ async def create_listing(session: AsyncSession, req: CreateGroupRequest) -> Grou
         current_size=req.current_size,
         max_size=req.max_size,
         description=req.description,
+        friends_chat_name=req.friends_chat_name,
         created_at=now,
         last_heartbeat=now,
     )

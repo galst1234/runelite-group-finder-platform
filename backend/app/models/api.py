@@ -30,6 +30,7 @@ class CreateGroupRequest(BaseModel):
     current_size: int = Field(alias="currentSize", ge=1, le=100)
     max_size: int = Field(alias="maxSize", ge=2, le=100)
     description: str = Field(default="", max_length=200)
+    friends_chat_name: str = Field(default="", alias="friendsChatName", max_length=12)
 
     @model_validator(mode="after")
     def current_size_le_max_size(self) -> Self:
@@ -55,4 +56,5 @@ class GroupListingResponse(BaseModel):
     current_size: int = Field(alias="currentSize")
     max_size: int = Field(alias="maxSize")
     description: str
+    friends_chat_name: str = Field(alias="friendsChatName")
     created_at: datetime.datetime = Field(alias="createdAt")
